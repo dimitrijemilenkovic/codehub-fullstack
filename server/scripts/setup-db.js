@@ -2,7 +2,7 @@ import { Pool } from 'pg'
 import 'dotenv/config'
 
 const pool = new Pool({
-  user: process.env.PGUSER || 'codehub1',
+  user: process.env.PGUSER || 'codehub',
   host: process.env.PGHOST || 'localhost',
   database: process.env.PGDATABASE || 'codehub_db',
   password: process.env.PGPASSWORD || 'codehub_pass',
@@ -116,7 +116,7 @@ async function setupDatabase() {
     let demoUserId
     if (demoUserResult.rows.length === 0) {
       const bcrypt = await import('bcryptjs')
-      const hashedPassword = await bcrypt.hash('demo123', 10)
+      const hashedPassword = await bcrypt.default.hash('demo123', 10)
       
       const newUserResult = await pool.query(`
         INSERT INTO users (username, email, password_hash)
