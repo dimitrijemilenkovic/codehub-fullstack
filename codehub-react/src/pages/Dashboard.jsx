@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import VelocityChart from '../charts/VelocityChart.jsx'
 import ProgressChart from '../charts/ProgressChart.jsx'
@@ -130,10 +130,11 @@ export default function Dashboard(){
   const [toast, setToast] = useState(null)
   const navigate = useNavigate()
 
-  function showToast(message, type = 'success') {
+  const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type })
-    setTimeout(() => setToast(null), 3000)
-  }
+    const timeoutId = setTimeout(() => setToast(null), 3000)
+    return () => clearTimeout(timeoutId) // Return cleanup function
+  }, [])
 
   useEffect(() => {
     let mounted = true
@@ -182,11 +183,11 @@ export default function Dashboard(){
     return () => { mounted = false }
   }, [])
 
-  function handleStatClick(statType) {
+  const handleStatClick = useCallback((statType) => {
     navigate('/tasks', { state: { filter: statType } })
-  }
+  }, [navigate])
 
-  async function handleTaskAdded(newTask) {
+  const handleTaskAdded = useCallback(async (newTask) => {
     // Reload data to get updated counts
     try {
       const tasks = await api.get('/api/tasks')
@@ -215,7 +216,7 @@ export default function Dashboard(){
     } catch (e) {
       console.error('Failed to check achievements:', e)
     }
-  }
+  }, [showToast])
 
   return (
     <>
