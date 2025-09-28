@@ -7,7 +7,10 @@ import bcrypt from 'bcryptjs'
 const { Pool } = pkg
 
 const app = express()
-app.use(cors())
+app.use(cors({
+  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:5173'],
+  credentials: false,
+}))
 app.use(express.json())
 
 const pool = new Pool({
@@ -19,7 +22,10 @@ const pool = new Pool({
   database: process.env.PGDATABASE || 'codehub_db',
 })
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret'
+const JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET) {
+  console.warn('WARNING: JWT_SECRET is not set. Set a strong secret in environment variables.')
+}
 
 function auth(req, res, next){
   const h = req.headers.authorization || ''
@@ -180,6 +186,11 @@ app.get('/api/metrics/focus', auth, async (req, res) => {
      [req.user.id]
   )
   res.json(result.rows)
+})
+
+// Achievements check (stub to avoid 404 in client flow)
+app.post('/api/achievements/check', auth, async (req, res) => {
+  res.json({ ok: true })
 })
 
 const port = process.env.PORT || 3001
