@@ -41,23 +41,25 @@ update(id, { status, completedAt: status==='done' ? new Date().toISOString() : n
 function statsLastNDays(n=7){
 const end = new Date()
 const arr = []
+// Pre-filter completed tasks to avoid repeated filtering
+const completedTasks = tasks.filter(t => t.completedAt)
 for (let i=n-1;i>=0;i--){
 const d = new Date(end); d.setDate(d.getDate()-i)
 const ymd = d.toISOString().slice(0,10)
 const label = d.toLocaleDateString('sr-RS', { weekday: 'short' })
-const done = tasks.filter(t => t.completedAt && t.completedAt.slice(0,10) === ymd).length
+const done = completedTasks.filter(t => t.completedAt.slice(0,10) === ymd).length
 arr.push({ day: label, done })
 }
 return arr
 }
 
 
-const counts = {
-total: tasks.length,
-todo: tasks.filter(t=>t.status==='todo').length,
-doing: tasks.filter(t=>t.status==='doing').length,
-done: tasks.filter(t=>t.status==='done').length,
-}
+// Optimize counts calculation by doing it once
+const counts = tasks.reduce((acc, task) => {
+  acc.total++
+  acc[task.status] = (acc[task.status] || 0) + 1
+  return acc
+}, { total: 0, todo: 0, doing: 0, done: 0 })
 
 
 return { tasks, add, update, remove, setStatus, statsLastNDays, counts }

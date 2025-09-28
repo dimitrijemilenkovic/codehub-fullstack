@@ -15,10 +15,18 @@ export default function PomodoroTimer() {
         setTimeLeft(prev => prev - 1)
       }, 1000)
     } else {
-      clearInterval(intervalRef.current)
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
     }
 
-    return () => clearInterval(intervalRef.current)
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+    }
   }, [isRunning, timeLeft])
 
   useEffect(() => {
@@ -32,7 +40,7 @@ export default function PomodoroTimer() {
     
     if (!isBreak) {
       // Work session completed
-      const minutes = isBreak ? 5 : 25
+      const minutes = 25 // Fixed: was using isBreak ? 5 : 25 which was wrong
       setTotalMinutes(prev => prev + minutes)
       setSessionCount(prev => prev + 1)
       

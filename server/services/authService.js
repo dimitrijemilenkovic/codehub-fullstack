@@ -36,6 +36,11 @@ export class AuthService {
       throw new Error('Invalid credentials')
     }
     
+    // Ensure JWT_SECRET is set
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET environment variable is not set')
+    }
+    
     const token = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET,
