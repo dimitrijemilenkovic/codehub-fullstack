@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3001'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
 
 class ApiClient {
   constructor() {
@@ -25,7 +25,11 @@ class ApiClient {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: response.statusText }))
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
+        const message = errorData.message || errorData.error || response.statusText || 'Request failed'
+        const err = new Error(message)
+        err.status = response.status
+        err.data = errorData
+        throw err
       }
       
       const data = await response.json()
