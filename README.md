@@ -52,14 +52,25 @@ npm run db:setup
 ```
 
 4. **Configure environment**
-Create `.env` file in `server/` directory:
+Create `.env` file in `server/` directory (copy from `.env.example`):
+```bash
+cd server
+cp .env.example .env
+```
+
+**IMPORTANT SECURITY NOTE**: 
+- Generate a strong JWT_SECRET (at least 32 characters)
+- Use secure database passwords
+- Never commit the actual `.env` file to version control
+
+Example `.env` content:
 ```env
 PGHOST=localhost
 PGPORT=5432
 PGUSER=codehub
-PGPASSWORD=codehub_pass
+PGPASSWORD=your_secure_database_password
 PGDATABASE=codehub_db
-JWT_SECRET=your-super-secret-jwt-key
+JWT_SECRET=your_super_secure_jwt_secret_at_least_32_characters_long
 PORT=3001
 NODE_ENV=development
 ```
