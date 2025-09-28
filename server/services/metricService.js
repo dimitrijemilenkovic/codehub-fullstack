@@ -4,16 +4,18 @@ export class MetricService {
   static async velocity(userId, days = 7) {
     const query = `
       SELECT 
-        DATE(created_at) as date,
-        COUNT(*) as tasks_completed
-      FROM tasks 
-      WHERE user_id = $1 
-        AND status = 'done' 
-        AND created_at >= NOW() - INTERVAL '${days} days'
-      GROUP BY DATE(created_at)
-      ORDER BY DATE(created_at)
+        DATE(d.d) AS date,
+        COALESCE(t.cnt, 0) AS tasks_completed
+      FROM generate_series(NOW() - ($2::int - 1) * INTERVAL '1 day', NOW(), INTERVAL '1 day') AS d(d)
+      LEFT JOIN (
+        SELECT DATE(completed_at) AS day, COUNT(*) AS cnt
+        FROM tasks
+        WHERE user_id = $1 AND completed_at IS NOT NULL
+        GROUP BY DATE(completed_at)
+      ) t ON t.day = DATE(d.d)
+      ORDER BY DATE(d.d)
     `
-    const result = await pool.query(query, [userId])
+    const result = await pool.query(query, [userId, Number(days)])
     return result.rows
   }
 

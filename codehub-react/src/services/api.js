@@ -24,12 +24,24 @@ class ApiClient {
       const response = await fetch(url, config)
       
       if (!response.ok) {
+        // Handle 204/205 with no body gracefully
+        if (response.status === 204 || response.status === 205) {
+          return null
+        }
         const errorData = await response.json().catch(() => ({ message: response.statusText }))
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
       }
       
-      const data = await response.json()
-      return data
+      // Avoid parsing JSON for 204/205 responses
+      if (response.status === 204 || response.status === 205) {
+        return null
+      }
+      const contentType = response.headers.get('content-type') || ''
+      if (contentType.includes('application/json')) {
+        return await response.json()
+      }
+      // For non-JSON responses, return raw text
+      return await response.text()
     } catch (error) {
       console.error('API request failed:', error)
       throw error

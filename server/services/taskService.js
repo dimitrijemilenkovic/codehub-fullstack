@@ -44,6 +44,7 @@ export class TaskService {
           status = COALESCE($3, status),
           priority = COALESCE($4, priority),
           due_date = COALESCE($5, due_date),
+          completed_at = CASE WHEN $3 = 'done' THEN COALESCE(completed_at, NOW()) ELSE completed_at END,
           updated_at = NOW()
       WHERE id = $6 AND user_id = $7
       RETURNING *

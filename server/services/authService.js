@@ -1,6 +1,7 @@
 import { pool } from '../config/database.js'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import { JWT_SECRET } from '../config/index.js'
 
 export class AuthService {
   static async register(username, email, password) {
@@ -38,7 +39,7 @@ export class AuthService {
     
     const token = jwt.sign(
       { id: user.id, email: user.email },
-      process.env.JWT_SECRET,
+      JWT_SECRET,
       { expiresIn: '7d' }
     )
     
