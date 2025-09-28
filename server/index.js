@@ -27,7 +27,7 @@ function auth(req, res, next){
   if(!token) return res.status(401).json({ error: 'Unauthorized' })
   try{
     const payload = jwt.verify(token, JWT_SECRET)
-    req.user = { id: payload.sub, email: payload.email, name: payload.name }
+    req.user = { id: payload.sub, email: payload.email, username: payload.username }
     next()
   }catch(e){
     return res.status(401).json({ error: 'Unauthorized' })
@@ -49,10 +49,10 @@ app.post('/api/register', async (req, res) => {
   if (!name || !email || !password) return res.status(400).json({ error: 'Popuni sva polja' })
   const password_hash = await bcrypt.hash(password, 10)
   const result = await pool.query(
-    `INSERT INTO users(name, email, password_hash)
+    `INSERT INTO users(username, email, password_hash)
      VALUES ($1, $2, $3)
-     ON CONFLICT (email) DO UPDATE SET name=EXCLUDED.name
-     RETURNING id, name, email`,
+     ON CONFLICT (email) DO UPDATE SET username=EXCLUDED.username
+     RETURNING id, username, email`,
     [name, email, password_hash]
   )
   res.json({ ok: true, user: result.rows[0] })
@@ -61,13 +61,13 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body || {}
   if (!email || !password) return res.status(400).json({ error: 'Prazna polja' })
-  const result = await pool.query('SELECT id, name, email, password_hash FROM users WHERE email=$1', [email])
+  const result = await pool.query('SELECT id, username, email, password_hash FROM users WHERE email=$1', [email])
   if (result.rowCount === 0) return res.status(401).json({ error: 'Neispravni kredencijali' })
   const user = result.rows[0]
   const ok = await bcrypt.compare(password, user.password_hash)
   if (!ok) return res.status(401).json({ error: 'Neispravni kredencijali' })
-  const token = jwt.sign({ sub: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '7d' })
-  res.json({ token, user: { id: user.id, name: user.name, email: user.email } })
+  const token = jwt.sign({ sub: user.id, email: user.email, username: user.username }, JWT_SECRET, { expiresIn: '7d' })
+  res.json({ token, user: { id: user.id, username: user.username, email: user.email } })
 })
 
 // Snippets (protected)
