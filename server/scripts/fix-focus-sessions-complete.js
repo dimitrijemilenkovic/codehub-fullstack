@@ -2,7 +2,7 @@ import { Pool } from 'pg'
 import 'dotenv/config'
 
 const pool = new Pool({
-  user: process.env.PGUSER || 'codehub1',
+  user: process.env.PGUSER || 'codehub',
   host: process.env.PGHOST || 'localhost',
   database: process.env.PGDATABASE || 'codehub_db',
   password: process.env.PGPASSWORD || 'codehub_pass',

@@ -2,7 +2,7 @@ import { Pool } from 'pg'
 import 'dotenv/config'
 
 const pool = new Pool({
-  user: process.env.PGUSER || 'codehub1',
+  user: process.env.PGUSER || 'codehub',
   host: process.env.PGHOST || 'localhost',
   database: process.env.PGDATABASE || 'codehub_db',
   password: process.env.PGPASSWORD || 'codehub_pass',
@@ -50,6 +50,7 @@ async function setupDatabase() {
         code TEXT NOT NULL,
         language VARCHAR(50) NOT NULL,
         description TEXT,
+        tags TEXT[],
         user_id UUID REFERENCES users(id) ON DELETE CASCADE,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
@@ -65,6 +66,9 @@ async function setupDatabase() {
         status VARCHAR(20) DEFAULT 'todo',
         priority VARCHAR(20) DEFAULT 'medium',
         due_date DATE,
+        estimate INTEGER,
+        spent INTEGER,
+        completed_at TIMESTAMP,
         user_id UUID REFERENCES users(id) ON DELETE CASCADE,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
@@ -97,10 +101,22 @@ async function setupDatabase() {
       ALTER TABLE snippets 
       ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id) ON DELETE CASCADE
     `)
+    await pool.query(`
+      ALTER TABLE snippets 
+      ADD COLUMN IF NOT EXISTS tags TEXT[]
+    `)
 
     await pool.query(`
       ALTER TABLE tasks 
       ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id) ON DELETE CASCADE
+    `)
+
+    // Ensure additional columns exist for tasks
+    await pool.query(`
+      ALTER TABLE tasks 
+      ADD COLUMN IF NOT EXISTS estimate INTEGER,
+      ADD COLUMN IF NOT EXISTS spent INTEGER,
+      ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP
     `)
 
     await pool.query(`

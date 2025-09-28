@@ -3,7 +3,7 @@ import { MetricService } from '../services/metricService.js'
 export async function velocity(req, res) {
   try {
     const userId = req.user.id
-    const days = req.query.days || 7
+    const days = Number(req.query.days || 7)
     const data = await MetricService.velocity(userId, days)
     res.json(data)
   } catch (error) {
