@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+
+/* Definišemo brend i tipografiju kroz @theme (v4) */
+@theme {
+--font-sans: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+/* Plava paleta za brend (možeš kasnije podesiti nijanse) */
+--color-brand-50: oklch(0.98 0.02 250);
+--color-brand-100: oklch(0.97 0.03 250);
+--color-brand-200: oklch(0.93 0.05 250);
+--color-brand-300: oklch(0.88 0.08 250);
+--color-brand-400: oklch(0.80 0.12 250);
+--color-brand-500: oklch(0.72 0.15 250);
+--color-brand-600: oklch(0.66 0.16 250);
+--color-brand-700: oklch(0.58 0.17 250);
+--color-brand-800: oklch(0.52 0.17 250);
+--color-brand-900: oklch(0.45 0.16 250);
+}
+
+
+/* Ručno upravljanje dark varijantom preko data-attribute */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+
+/* Bazični reset/detalji */
+@layer base {
+html { font-family: var(--font-sans); }
+body { background: var(--color-gray-50); color: var(--color-gray-900); }
+
+
+/* Dark overrides */
+@variant dark {
+body { background: var(--color-gray-900); color: var(--color-gray-100); }
+}
+}
