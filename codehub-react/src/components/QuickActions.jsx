@@ -12,13 +12,11 @@ export default function QuickActions({ onTaskAdded }) {
     
     setLoading(true)
     try {
-      console.log('Sending task data:', { title: quickTask, status: 'todo', priority: 'medium' });
       const response = await api.post('/api/tasks', { 
         title: quickTask,
         status: 'todo',
         priority: 'medium'
       });
-      console.log('Received response:', response);
       
       // Handle response - it might be just the task or an object with task and newAchievements
       const task = response.task || response
@@ -33,7 +31,7 @@ export default function QuickActions({ onTaskAdded }) {
         setTimeout(() => setAchievementNotification(null), 5000) // Hide after 5 seconds
       }
     } catch (e) {
-      console.error('Failed to add task:', e)
+      // Failed to add task
     } finally {
       setLoading(false)
     }

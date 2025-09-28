@@ -31,7 +31,6 @@ export default function Tasks() {
     async function load() {
       try {
         const data = await api.get("/api/tasks");
-        console.log('Loaded tasks:', data);
         if (mounted) setTasks(data);
       } catch (e) {
         setError(e.message);
@@ -55,7 +54,6 @@ export default function Tasks() {
         due_date: form.dueDate,
         status: "todo"
       });
-      console.log('Created task response:', response);
       // Handle both old and new response formats
       const created = response.task || response;
       setTasks((t) => [created, ...t]);

@@ -15,13 +15,36 @@ export class TaskService {
     static async createTask(userId, taskData) {
     const { title, description = '', status = 'todo', priority = 'medium', due_date } = taskData
     
+    // Validate input
+    if (!title || title.trim().length === 0) {
+      throw new Error('Task title is required')
+    }
+    
+    if (title.length > 255) {
+      throw new Error('Task title must be less than 255 characters')
+    }
+    
+    if (description && description.length > 1000) {
+      throw new Error('Task description must be less than 1000 characters')
+    }
+    
+    const validStatuses = ['todo', 'doing', 'done']
+    if (!validStatuses.includes(status)) {
+      throw new Error('Invalid task status')
+    }
+    
+    const validPriorities = ['low', 'medium', 'high']
+    if (!validPriorities.includes(priority)) {
+      throw new Error('Invalid task priority')
+    }
+    
     const query = `
       INSERT INTO tasks (title, description, status, priority, due_date, user_id)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `
     
-    const result = await pool.query(query, [title, description, status, priority, due_date, userId])
+    const result = await pool.query(query, [title.trim(), description.trim(), status, priority, due_date, userId])
     const newTask = result.rows[0]
     
     // Check for new achievements

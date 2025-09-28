@@ -24,13 +24,36 @@ class ApiClient {
       const response = await fetch(url, config)
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: response.statusText }))
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
+        let errorData
+        try {
+          errorData = await response.json()
+        } catch {
+          errorData = { error: response.statusText, message: response.statusText }
+        }
+        
+        // Handle unauthorized errors
+        if (response.status === 401) {
+          localStorage.removeItem('codehub_token')
+          window.location.href = '/login'
+        }
+        
+        const errorMessage = errorData.error || errorData.message || `HTTP error! status: ${response.status}`
+        throw new Error(errorMessage)
+      }
+      
+      // Handle empty responses (like 204 No Content)
+      if (response.status === 204) {
+        return null
       }
       
       const data = await response.json()
       return data
     } catch (error) {
+      // Handle network errors
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        console.error('Network error:', error)
+        throw new Error('Network error: Unable to connect to server')
+      }
       console.error('API request failed:', error)
       throw error
     }

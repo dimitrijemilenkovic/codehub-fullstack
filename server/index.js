@@ -1,25 +1,30 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
-import pkg from 'pg'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
-const { Pool } = pkg
+import { pool } from './config/database.js'
+import { apiLimiter, authLimiter, createLimiter } from './middleware/rateLimiter.js'
 
 const app = express()
-app.use(cors())
-app.use(express.json())
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || undefined,
-  host: process.env.PGHOST || 'localhost',
-  port: Number(process.env.PGPORT || 5432),
-  user: process.env.PGUSER || 'codehub',
-  password: process.env.PGPASSWORD || 'codehub_pass',
-  database: process.env.PGDATABASE || 'codehub_db',
-})
+// Configure CORS for production
+const corsOptions = {
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  credentials: true,
+  optionsSuccessStatus: 200
+}
+app.use(cors(corsOptions))
+app.use(express.json({ limit: '10mb' }))
+app.use(express.urlencoded({ extended: true, limit: '10mb' }))
+
+// Apply general rate limiting to all routes
+app.use('/api/', apiLimiter)
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret'
+if (!JWT_SECRET || JWT_SECRET === 'dev-secret') {
+  console.warn('WARNING: Using default JWT_SECRET. Please set JWT_SECRET environment variable for production.')
+}
 
 function auth(req, res, next){
   const h = req.headers.authorization || ''
@@ -44,7 +49,7 @@ app.get('/health', async (req, res) => {
 })
 
 // Auth
-app.post('/api/register', async (req, res) => {
+app.post('/api/register', authLimiter, async (req, res) => {
   const { name, email, password } = req.body || {}
   if (!name || !email || !password) return res.status(400).json({ error: 'Popuni sva polja' })
   const password_hash = await bcrypt.hash(password, 10)
@@ -58,7 +63,7 @@ app.post('/api/register', async (req, res) => {
   res.json({ ok: true, user: result.rows[0] })
 })
 
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', authLimiter, async (req, res) => {
   const { email, password } = req.body || {}
   if (!email || !password) return res.status(400).json({ error: 'Prazna polja' })
   const result = await pool.query('SELECT id, name, email, password_hash FROM users WHERE email=$1', [email])

@@ -10,8 +10,20 @@ function subscribe(cb) { listeners.add(cb); return () => listeners.delete(cb) }
 
 
 export function useAuth() {
-const isAuthed = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
-const login = (token = 'dev-token') => { localStorage.setItem(key, token); listeners.forEach(l => l()) }
-const logout = () => { localStorage.removeItem(key); listeners.forEach(l => l()) }
-return { isAuthed, login, logout }
+  const isAuthed = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
+  
+  const login = (token) => { 
+    if (!token) {
+      throw new Error('Token is required for login')
+    }
+    localStorage.setItem(key, token)
+    listeners.forEach(l => l())
+  }
+  
+  const logout = () => { 
+    localStorage.removeItem(key)
+    listeners.forEach(l => l())
+  }
+  
+  return { isAuthed, login, logout }
 }
