@@ -325,30 +325,6 @@ export default function Pomodoro() {
           </div>
         </div>
 
-        {/* Debug Info */}
-        <div style={{ 
-          marginTop: '32px', 
-          padding: '20px', 
-          backgroundColor: 'var(--color-blue-50)', 
-          borderRadius: '12px',
-          border: '1px solid var(--color-blue-200)',
-          fontSize: '0.9rem',
-          textAlign: 'left'
-        }}>
-          <h3 style={{ marginBottom: '12px', color: 'var(--color-blue-800)' }}>
-            🔧 Debug Info
-          </h3>
-          <div style={{ color: 'var(--color-blue-700)', lineHeight: '1.6' }}>
-            <div>Is Running: {isRunning ? 'Yes' : 'No'}</div>
-            <div>Is Break: {isBreak ? 'Yes' : 'No'}</div>
-            <div>Time Left: {timeLeft}s</div>
-            <div>Selected Duration: {selectedDuration}min</div>
-            <div>Break Duration: {breakDuration}min</div>
-            <div>Total Minutes: {totalMinutes}</div>
-            <div>Sessions: {sessionCount}</div>
-            <div>Progress: {progress.toFixed(1)}%</div>
-          </div>
-        </div>
 
         {/* Instructions */}
         <div style={{ 

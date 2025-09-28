@@ -4,6 +4,22 @@ import jwt from 'jsonwebtoken'
 
 export class AuthService {
   static async register(username, email, password) {
+    // Validate password strength
+    if (password.length < 6) {
+      throw new Error('Password must be at least 6 characters long')
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      throw new Error('Invalid email format')
+    }
+    
+    // Validate username
+    if (username.length < 3) {
+      throw new Error('Username must be at least 3 characters long')
+    }
+    
     const hashedPassword = await bcrypt.hash(password, 10)
     
     const query = `
