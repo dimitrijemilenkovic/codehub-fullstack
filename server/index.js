@@ -27,7 +27,7 @@ function auth(req, res, next){
   if(!token) return res.status(401).json({ error: 'Unauthorized' })
   try{
     const payload = jwt.verify(token, JWT_SECRET)
-    req.user = { id: payload.sub, email: payload.email, name: payload.name }
+    req.user = { id: payload.sub, email: payload.email, username: payload.username }
     next()
   }catch(e){
     return res.status(401).json({ error: 'Unauthorized' })
@@ -45,15 +45,15 @@ app.get('/health', async (req, res) => {
 
 // Auth
 app.post('/api/register', async (req, res) => {
-  const { name, email, password } = req.body || {}
-  if (!name || !email || !password) return res.status(400).json({ error: 'Popuni sva polja' })
+  const { username, email, password } = req.body || {}
+  if (!username || !email || !password) return res.status(400).json({ error: 'Popuni sva polja' })
   const password_hash = await bcrypt.hash(password, 10)
   const result = await pool.query(
-    `INSERT INTO users(name, email, password_hash)
+    `INSERT INTO users(username, email, password_hash)
      VALUES ($1, $2, $3)
-     ON CONFLICT (email) DO UPDATE SET name=EXCLUDED.name
-     RETURNING id, name, email`,
-    [name, email, password_hash]
+     ON CONFLICT (email) DO UPDATE SET username=EXCLUDED.username
+     RETURNING id, username, email`,
+    [username, email, password_hash]
   )
   res.json({ ok: true, user: result.rows[0] })
 })
@@ -61,13 +61,13 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body || {}
   if (!email || !password) return res.status(400).json({ error: 'Prazna polja' })
-  const result = await pool.query('SELECT id, name, email, password_hash FROM users WHERE email=$1', [email])
+  const result = await pool.query('SELECT id, username, email, password_hash FROM users WHERE email=$1', [email])
   if (result.rowCount === 0) return res.status(401).json({ error: 'Neispravni kredencijali' })
   const user = result.rows[0]
   const ok = await bcrypt.compare(password, user.password_hash)
   if (!ok) return res.status(401).json({ error: 'Neispravni kredencijali' })
-  const token = jwt.sign({ sub: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '7d' })
-  res.json({ token, user: { id: user.id, name: user.name, email: user.email } })
+  const token = jwt.sign({ sub: user.id, email: user.email, username: user.username }, JWT_SECRET, { expiresIn: '7d' })
+  res.json({ token, user: { id: user.id, username: user.username, email: user.email } })
 })
 
 // Snippets (protected)
@@ -138,7 +138,7 @@ app.put('/api/tasks/:id', auth, async (req, res) => {
     `UPDATE tasks SET 
       title=COALESCE($3,title), description=COALESCE($4,description), status=COALESCE($5,status),
       priority=COALESCE($6,priority), due_date=COALESCE($7,due_date), estimate=COALESCE($8,estimate), spent=COALESCE($9,spent),
-      updated_at=NOW(), completed_at=CASE WHEN $5='done' THEN NOW() ELSE completed_at END
+      updated_at=NOW()
      WHERE id=$1 AND user_id=$2 RETURNING *`,
     [id, req.user.id, title, description, status, priority, dueDate, estimate, spent]
   )
@@ -157,14 +157,14 @@ app.delete('/api/tasks/:id', auth, async (req, res) => {
 app.get('/api/metrics/velocity', auth, async (req, res) => {
   const { days = 7 } = req.query
   const result = await pool.query(
-    `SELECT to_char(d::date, 'Dy') AS day, COALESCE(cnt,0) AS done
-     FROM generate_series(CURRENT_DATE - ($1::int - 1), CURRENT_DATE, interval '1 day') AS d
+    `SELECT to_char(ds.d::date, 'Dy') AS day, COALESCE(t.cnt,0) AS done
+     FROM generate_series(CURRENT_DATE - ($1::int - 1), CURRENT_DATE, interval '1 day') AS ds(d)
      LEFT JOIN (
-       SELECT date_trunc('day', completed_at) AS d, COUNT(*) AS cnt
-       FROM tasks WHERE completed_at IS NOT NULL AND user_id=$2
+       SELECT date_trunc('day', updated_at)::date AS task_date, COUNT(*) AS cnt
+       FROM tasks WHERE status='done' AND user_id=$2
        GROUP BY 1
-     ) t ON t.d::date = d::date
-     ORDER BY d`,
+     ) t ON t.task_date = ds.d::date
+     ORDER BY ds.d`,
     [days, req.user.id]
   )
   res.json(result.rows)
@@ -172,11 +172,11 @@ app.get('/api/metrics/velocity', auth, async (req, res) => {
 
 app.get('/api/metrics/focus', auth, async (req, res) => {
   const result = await pool.query(
-    `SELECT to_char(d::date, 'Dy') AS day, COALESCE(SUM(minutes),0) AS minutes
-     FROM generate_series(CURRENT_DATE - 6, CURRENT_DATE, interval '1 day') AS d
-     LEFT JOIN focus_sessions f ON f.day::date = d::date AND f.user_id=$1
-     GROUP BY d
-     ORDER BY d`,
+    `SELECT to_char(ds.d::date, 'Dy') AS day, COALESCE(SUM(f.duration_minutes),0) AS minutes
+     FROM generate_series(CURRENT_DATE - 6, CURRENT_DATE, interval '1 day') AS ds(d)
+     LEFT JOIN focus_sessions f ON f.created_at::date = ds.d::date AND f.user_id=$1
+     GROUP BY ds.d
+     ORDER BY ds.d`,
      [req.user.id]
   )
   res.json(result.rows)

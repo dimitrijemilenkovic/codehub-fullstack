@@ -7,7 +7,6 @@ import Achievements from '../components/Achievements.jsx'
 import { api } from '../services/api.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 
-// Mali kalendar komponenta
 function MiniCalendar() {
   const [currentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(new Date())
@@ -21,12 +20,10 @@ function MiniCalendar() {
 
   const days = []
   
-  // Prazna polja pre prvog dana
   for (let i = 0; i < startDay; i++) {
     days.push(null)
   }
   
-  // Dani u mesecu
   for (let day = 1; day <= daysInMonth; day++) {
     days.push(day)
   }
@@ -48,53 +45,43 @@ function MiniCalendar() {
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(7, 1fr)', 
-        gap: '4px',
-        marginBottom: '8px'
+        gap: '8px', 
+        marginBottom: '16px',
+        textAlign: 'center'
       }}>
-        {['Po', 'Ut', 'Sr', 'Če', 'Pe', 'Su', 'Ne'].map(day => (
+        {['P', 'U', 'S', 'Č', 'P', 'S', 'N'].map(day => (
           <div key={day} style={{ 
-            textAlign: 'center', 
-            fontSize: '0.875rem', 
-            fontWeight: 600,
-            color: 'var(--color-gray-600)',
-            padding: '4px'
+            fontWeight: 600, 
+            color: 'var(--color-gray-500)', 
+            fontSize: '0.875rem',
+            padding: '8px 0'
           }}>
             {day}
           </div>
         ))}
       </div>
       
-      {/* Dani */}
+      {/* Kalendar grid */}
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(7, 1fr)', 
-        gap: '4px'
+        gap: '4px' 
       }}>
         {days.map((day, index) => (
-          <div className="calendar-day"
+          <div
             key={index}
             style={{
-              minHeight: '40px',
+              aspectRatio: '1',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '1rem',
-              fontWeight: isToday(day) ? 700 : 400,
-              color: day ? (isToday(day) ? 'var(--color-white)' : 'var(--color-gray-800)') : 'transparent',
-              backgroundColor: isToday(day) ? 'var(--color-brand-600)' : 'transparent',
-              borderRadius: '6px',
+              borderRadius: '8px',
               cursor: day ? 'pointer' : 'default',
+              backgroundColor: day ? (isToday(day) ? 'var(--color-brand-600)' : 'transparent') : 'transparent',
+              color: day ? (isToday(day) ? 'white' : 'var(--color-gray-700)') : 'transparent',
+              fontWeight: isToday(day) ? 600 : 400,
+              fontSize: '0.875rem',
               transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              if (day && !isToday(day)) {
-                e.target.style.backgroundColor = 'var(--color-gray-100)'
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (day && !isToday(day)) {
-                e.target.style.backgroundColor = 'transparent'
-              }
             }}
             onClick={() => {
               if (day) {
@@ -149,7 +136,6 @@ export default function Dashboard(){
           setVelocity(v)
           setFocus(f)
           
-          // Calculate task counts from API data
           const counts = {
             todo: tasks.filter(t => t.status === 'todo').length,
             doing: tasks.filter(t => t.status === 'doing').length,
@@ -167,7 +153,6 @@ export default function Dashboard(){
         }
       } catch (e) {
         console.error('Failed to load metrics', e)
-        // Only set empty arrays if API fails, don't use fallback data
         if (mounted) {
           setVelocity([])
           setFocus([])
@@ -187,7 +172,6 @@ export default function Dashboard(){
   }
 
   async function handleTaskAdded(newTask) {
-    // Reload data to get updated counts
     try {
       const tasks = await api.get('/api/tasks')
       const counts = {
@@ -201,241 +185,317 @@ export default function Dashboard(){
         totalTasks: tasks.length,
         completedTasks: counts.done
       }))
-      
-      // Show toast notification
-      showToast('Task je uspešno dodat! 🎉', 'success')
     } catch (e) {
-      console.error('Failed to reload tasks:', e)
-      showToast('Greška prilikom dodavanja taska!', 'error')
-    }
-    
-    // Check for new achievements
-    try {
-      await api.post('/api/achievements/check')
-    } catch (e) {
-      console.error('Failed to check achievements:', e)
+      console.error('Failed to reload tasks', e)
     }
   }
 
   return (
     <>
-      {/* Toast Notification */}
       {toast && (
-        <div className="toast-notification" style={{
+        <div style={{
           position: 'fixed',
           top: '20px',
           right: '20px',
-          background: toast.type === 'success' 
-            ? 'linear-gradient(135deg, #10b981, #059669)' 
-            : toast.type === 'error' 
-            ? 'linear-gradient(135deg, #ef4444, #dc2626)'
-            : 'linear-gradient(135deg, #3b82f6, #2563eb)',
+          padding: '12px 20px',
+          backgroundColor: toast.type === 'success' ? 'var(--color-green-600)' : 'var(--color-red-600)',
           color: 'white',
-          padding: '16px 20px',
-          borderRadius: '12px',
-          boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           zIndex: 1000,
-          animation: 'slideInRight 0.3s ease-out',
-          maxWidth: '300px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px'
+          fontWeight: 500
         }}>
-          <div style={{ fontSize: '20px' }}>
-            {toast.type === 'success' ? '✅' : toast.type === 'error' ? '❌' : 'ℹ️'}
-          </div>
-          <div style={{ fontWeight: 'bold' }}>{toast.message}</div>
+          {toast.message}
         </div>
       )}
-      
-      <div style={{ display: 'grid', gap: '20px' }}>
-        {/* Stats Cards - Clickable with animations */}
-        <div className="card grid-item" style={{ 
+
+      <div style={{ display: 'grid', gap: '24px' }}>
+        {/* Header */}
+        <div className="card" style={{ padding: '32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <div>
+              <h1 style={{ 
+                margin: 0, 
+                fontSize: '2rem', 
+                fontWeight: 700, 
+                color: 'var(--color-gray-900)',
+                marginBottom: '8px'
+              }}>
+                Dobrodošli nazad! 👋
+              </h1>
+              <p style={{ 
+                margin: 0, 
+                color: 'var(--color-gray-600)', 
+                fontSize: '1.125rem' 
+              }}>
+                Evo pregleda vašeg napretka danas
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                className="btn btn-outline"
+                onClick={() => navigate('/pomodoro')}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+              >
+                🍅 Pomodoro
+              </button>
+              <button 
+                className="btn btn-primary"
+                onClick={() => navigate('/tasks')}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+              >
+                ➕ Novi Task
+              </button>
+            </div>
+          </div>
+
+          <QuickActions onTaskAdded={handleTaskAdded} />
+        </div>
+
+        <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(3, 1fr)', 
-          gap: '32px',
-          padding: '56px',
-          background: 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
-          border: '1px solid #e2e8f0'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+          gap: '20px' 
         }}>
           <div 
-            className="stat-card-animated"
+            className="card stat-card" 
             style={{ 
-              textAlign: 'center',
+              padding: '24px', 
               cursor: 'pointer',
-              padding: '24px',
-              borderRadius: '16px',
-              transition: 'all 0.3s ease',
-              background: 'linear-gradient(135deg, var(--color-brand-50), var(--color-brand-100))'
+              transition: 'all 0.2s ease',
+              border: '1px solid var(--color-gray-200)'
             }}
             onClick={() => handleStatClick('todo')}
           >
-            <div className="stat-icon">📋</div>
-            <div style={{ 
-              fontSize: '3rem', 
-              fontWeight: 800, 
-              color: 'var(--color-brand-600)',
-              marginBottom: '8px'
-            }}>
-              {taskCounts.todo}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <div style={{ 
+                width: '48px', 
+                height: '48px', 
+                borderRadius: '12px', 
+                backgroundColor: 'var(--color-orange-100)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.5rem'
+              }}>
+                📝
+              </div>
+              <span style={{ 
+                fontSize: '2rem', 
+                fontWeight: 700, 
+                color: 'var(--color-orange-600)' 
+              }}>
+                {taskCounts.todo}
+              </span>
             </div>
-            <div style={{ 
-              fontSize: '1.125rem', 
-              fontWeight: 600, 
-              color: 'var(--color-gray-600)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px'
-            }}>
+            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--color-gray-700)' }}>
               To-Do
-            </div>
+            </h3>
+            <p style={{ margin: '4px 0 0 0', fontSize: '0.875rem', color: 'var(--color-gray-500)' }}>
+              Čekaju da se urade
+            </p>
           </div>
+
           <div 
-            className="stat-card-animated"
+            className="card stat-card" 
             style={{ 
-              textAlign: 'center',
+              padding: '24px', 
               cursor: 'pointer',
-              padding: '24px',
-              borderRadius: '16px',
-              transition: 'all 0.3s ease',
-              background: 'linear-gradient(135deg, var(--color-orange-50), var(--color-orange-100))'
+              transition: 'all 0.2s ease',
+              border: '1px solid var(--color-gray-200)'
             }}
             onClick={() => handleStatClick('doing')}
           >
-            <div className="stat-icon">⚡</div>
-            <div style={{ 
-              fontSize: '3rem', 
-              fontWeight: 800, 
-              color: 'var(--color-orange-600)',
-              marginBottom: '8px'
-            }}>
-              {taskCounts.doing}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <div style={{ 
+                width: '48px', 
+                height: '48px', 
+                borderRadius: '12px', 
+                backgroundColor: 'var(--color-blue-100)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.5rem'
+              }}>
+                ⚡
+              </div>
+              <span style={{ 
+                fontSize: '2rem', 
+                fontWeight: 700, 
+                color: 'var(--color-blue-600)' 
+              }}>
+                {taskCounts.doing}
+              </span>
             </div>
-            <div style={{ 
-              fontSize: '1.125rem', 
-              fontWeight: 600, 
-              color: 'var(--color-gray-600)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px'
-            }}>
-              Doing
-            </div>
+            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--color-gray-700)' }}>
+              U radu
+            </h3>
+            <p style={{ margin: '4px 0 0 0', fontSize: '0.875rem', color: 'var(--color-gray-500)' }}>
+              Trenutno se rade
+            </p>
           </div>
+
           <div 
-            className="stat-card-animated"
+            className="card stat-card" 
             style={{ 
-              textAlign: 'center',
+              padding: '24px', 
               cursor: 'pointer',
-              padding: '24px',
-              borderRadius: '16px',
-              transition: 'all 0.3s ease',
-              background: 'linear-gradient(135deg, var(--color-green-50), var(--color-green-100))'
+              transition: 'all 0.2s ease',
+              border: '1px solid var(--color-gray-200)'
             }}
             onClick={() => handleStatClick('done')}
           >
-            <div className="stat-icon">✅</div>
-            <div style={{ 
-              fontSize: '3rem', 
-              fontWeight: 800, 
-              color: 'var(--color-green-600)',
-              marginBottom: '8px'
-            }}>
-              {taskCounts.done}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <div style={{ 
+                width: '48px', 
+                height: '48px', 
+                borderRadius: '12px', 
+                backgroundColor: 'var(--color-green-100)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.5rem'
+              }}>
+                ✅
+              </div>
+              <span style={{ 
+                fontSize: '2rem', 
+                fontWeight: 700, 
+                color: 'var(--color-green-600)' 
+              }}>
+                {taskCounts.done}
+              </span>
             </div>
-            <div style={{ 
-              fontSize: '1.125rem', 
-              fontWeight: 600, 
-              color: 'var(--color-gray-600)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px'
-            }}>
-              Done
+            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--color-gray-700)' }}>
+              Završeno
+            </h3>
+            <p style={{ margin: '4px 0 0 0', fontSize: '0.875rem', color: 'var(--color-gray-500)' }}>
+              Uspešno završeno
+            </p>
+          </div>
+
+          <div className="card stat-card" style={{ 
+            padding: '24px',
+            border: '1px solid var(--color-gray-200)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <div style={{ 
+                width: '48px', 
+                height: '48px', 
+                borderRadius: '12px', 
+                backgroundColor: 'var(--color-purple-100)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.5rem'
+              }}>
+                📚
+              </div>
+              <span style={{ 
+                fontSize: '2rem', 
+                fontWeight: 700, 
+                color: 'var(--color-purple-600)' 
+              }}>
+                {stats.totalSnippets}
+              </span>
+            </div>
+            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--color-gray-700)' }}>
+              Snippets
+            </h3>
+            <p style={{ margin: '4px 0 0 0', fontSize: '0.875rem', color: 'var(--color-gray-500)' }}>
+              Sačuvani kodovi
+            </p>
+          </div>
+        </div>
+
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+          gap: '24px' 
+        }}>
+          <MiniCalendar />
+          
+          <div className="card" style={{ padding: '32px' }}>
+            <h3 style={{ fontWeight: 700, marginBottom: '20px', fontSize: '1.25rem' }}>
+              📊 Statistike
+            </h3>
+            <div style={{ display: 'grid', gap: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: 'var(--color-gray-600)' }}>Ukupno taskova:</span>
+                <span style={{ fontWeight: 600, color: 'var(--color-gray-900)' }}>{stats.totalTasks}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: 'var(--color-gray-600)' }}>Završeno:</span>
+                <span style={{ fontWeight: 600, color: 'var(--color-green-600)' }}>{stats.completedTasks}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: 'var(--color-gray-600)' }}>Pomodoro sesije:</span>
+                <span style={{ fontWeight: 600, color: 'var(--color-orange-600)' }}>{stats.pomodoroSessions}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: 'var(--color-gray-600)' }}>Trenutni streak:</span>
+                <span style={{ fontWeight: 600, color: 'var(--color-blue-600)' }}>{stats.currentStreak} dana</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Quick Actions i Kalendar - jedan red */}
-        <div className="grid-item" style={{ 
+        <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(2, 1fr)', 
-          gap: '32px'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', 
+          gap: '24px' 
         }}>
-          {/* Quick Actions */}
-          <div className="gradient-container" style={{
-            background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
-            borderRadius: '16px',
-            padding: '8px',
-            border: '1px solid #f59e0b'
+          <div className="card" style={{ 
+            width: '100%',
+            padding: '0',
+            border: '1px solid var(--color-gray-200)'
           }}>
-            <QuickActions onTaskAdded={handleTaskAdded} />
+            {stats.totalTasks > 0 ? (
+              <VelocityChart data={velocity} loading={loading} />
+            ) : (
+              <div style={{ 
+                padding: '40px', 
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '350px',
+                width: '100%'
+              }}>
+                <div style={{ fontSize: '4rem', marginBottom: '16px' }}>📝</div>
+                <h3 style={{ 
+                  fontWeight: 700, 
+                  marginBottom: '8px', 
+                  fontSize: '1.375rem',
+                  color: 'var(--color-gray-700)'
+                }}>
+                  Nemate nijedan task u listi
+                </h3>
+                <p style={{ 
+                  color: 'var(--color-gray-500)', 
+                  fontSize: '1rem',
+                  margin: 0
+                }}>
+                  Dodajte prvi task da vidite grafikon završenih taskova
+                </p>
+              </div>
+            )}
           </div>
           
-          {/* Mali Kalendar */}
-          <div className="gradient-container" style={{
-            background: 'linear-gradient(135deg, #dbeafe, #bfdbfe)',
-            borderRadius: '16px',
-            padding: '8px',
-            border: '1px solid #3b82f6'
+          <div className="card" style={{ 
+            width: '100%',
+            padding: '0',
+            border: '1px solid var(--color-gray-200)'
           }}>
-            <MiniCalendar />
+            <ProgressChart data={focus} loading={loading} />
           </div>
         </div>
 
-        {/* Velocity Chart - puna širina */}
-        <div className="chart-premium gradient-container grid-item" style={{ 
-          width: '100%',
-          background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
-          borderRadius: '16px',
-          padding: '8px',
-          border: '1px solid #22c55e'
-        }}>
-          {stats.totalTasks > 0 ? (
-            <VelocityChart data={velocity} loading={loading} />
-          ) : (
-            <div className="card" style={{ 
-              padding: '40px', 
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: '350px',
-              width: '100%'
-            }}>
-              <div style={{ fontSize: '4rem', marginBottom: '16px' }}>📝</div>
-              <h3 style={{ 
-                fontWeight: 700, 
-                marginBottom: '8px', 
-                fontSize: '1.375rem',
-                color: 'var(--color-gray-700)'
-              }}>
-                Nemate nijedan task u listi
-              </h3>
-              <p style={{ 
-                color: 'var(--color-gray-500)', 
-                fontSize: '1rem',
-                margin: 0
-              }}>
-                Dodajte prvi task da vidite grafikon završenih taskova
-              </p>
-            </div>
-          )}
-        </div>
-        
-        {/* Focus Chart - puna širina */}
-        <div className="chart-premium gradient-container grid-item" style={{ 
-          width: '100%',
-          background: 'linear-gradient(135deg, #fef2f2, #fecaca)',
-          borderRadius: '16px',
-          padding: '8px',
-          border: '1px solid #ef4444'
-        }}>
-          <ProgressChart data={focus} loading={loading} />
-        </div>
-
-        {/* Achievements Section */}
-        <div className="card achievement-enhanced grid-item" style={{
+        <div className="card achievement-enhanced" style={{
           background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
-          border: '1px solid #f59e0b'
+          border: '1px solid #f59e0b',
+          padding: '32px'
         }}>
           <h2 style={{ fontWeight: 700, marginBottom: '28px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             🏆 Achievements

@@ -20,13 +20,10 @@ export default function ProgressChart({ data, loading }){
     )
   }
 
-  // Format data for chart
+  // Format data for chart - fix API response mapping
   const formattedData = data?.map(item => ({
-    ...item,
-    date: new Date(item.date).toLocaleDateString('sr-RS', { 
-      month: 'short', 
-      day: 'numeric' 
-    })
+    date: item.day,
+    total_minutes: parseInt(item.minutes) || 0
   })) || []
 
   return (
@@ -38,7 +35,7 @@ export default function ProgressChart({ data, loading }){
           fontSize: '1.375rem',
           color: 'var(--color-gray-900)'
         }}>
-          Fokus minuti
+          🕒 Fokus minuti
         </h3>
         <p style={{ 
           margin: 0, 

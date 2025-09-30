@@ -2,7 +2,7 @@ import { AchievementService } from '../services/achievementService.js'
 
 export async function getUserAchievements(req, res) {
   try {
-    const userId = req.user.id
+    const userId = req.user.sub || req.user.id
     const achievements = await AchievementService.getUserAchievements(userId)
     res.json(achievements)
   } catch (error) {
@@ -13,7 +13,7 @@ export async function getUserAchievements(req, res) {
 
 export async function checkAchievements(req, res) {
   try {
-    const userId = req.user.id
+    const userId = req.user.sub || req.user.id
     const result = await AchievementService.checkAchievements(userId)
     res.json(result)
   } catch (error) {

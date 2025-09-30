@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { login } from '../../services/auth.js'
+import { useAuth } from '../../hooks/useAuth.js'
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -10,6 +11,7 @@ export default function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const { login: setAuth } = useAuth()
 
   const handleChange = (e) => {
     setFormData({
@@ -26,7 +28,8 @@ export default function Login() {
     setError('')
 
     try {
-      await login(formData.email, formData.password)
+      const response = await login(formData.email, formData.password)
+      setAuth(response.token)
       navigate('/dashboard')
     } catch (err) {
       setError('Invalid email or password')
@@ -111,8 +114,8 @@ export default function Login() {
           textAlign: 'center'
         }}>
           <strong>Demo Account:</strong><br />
-          Email: admin@admin.com<br />
-          Password: admin
+          Email: demo@example.com<br />
+          Password: demo123
         </div>
       </div>
     </div>

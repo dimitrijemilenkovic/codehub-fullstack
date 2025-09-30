@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { register } from '../../services/auth.js'
+import { useAuth } from '../../hooks/useAuth.js'
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -12,6 +13,7 @@ export default function Register() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const { login: setAuth } = useAuth()
 
   const handleChange = (e) => {
     setFormData({

@@ -1,7 +1,7 @@
 import { api } from './api.js'
 
 export async function login(email, password) {
-  const response = await api.post('/api/auth/login', { email, password })
+  const response = await api.post('/api/login', { email, password })
   
   if (response.token) {
     localStorage.setItem('codehub_token', response.token)
@@ -12,7 +12,7 @@ export async function login(email, password) {
 }
 
 export async function register(username, email, password) {
-  const response = await api.post('/api/auth/register', { username, email, password })
+  const response = await api.post('/api/register', { username, email, password })
   return response
 }
 

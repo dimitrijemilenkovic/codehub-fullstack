@@ -18,7 +18,6 @@ class ApiClient {
       ...options,
     }
 
-    // console.log(`API ${config.method || 'GET'} ${url}`, config.body ? JSON.parse(config.body) : '')
 
     try {
       const response = await fetch(url, config)
@@ -26,6 +25,11 @@ class ApiClient {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: response.statusText }))
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
+      }
+      
+      // Handle 204 No Content response (for DELETE requests)
+      if (response.status === 204) {
+        return null
       }
       
       const data = await response.json()

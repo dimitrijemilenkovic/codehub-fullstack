@@ -4,6 +4,7 @@ import { api } from "../services/api.js";
 import { usePageTitle } from "../hooks/usePageTitle.js";
 
 export default function Tasks() {
+  console.log('TASKS COMPONENT RENDERING!');
   usePageTitle('Taskovi')
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,7 +47,12 @@ export default function Tasks() {
   }, []);
 
   async function add() {
-    if (!form.title.trim()) return;
+    console.log('ADD FUNCTION CALLED!', { form });
+    if (!form.title.trim()) {
+      console.log('No title provided, returning early');
+      return;
+    }
+    console.log('Proceeding with task creation...');
     try {
       const response = await api.post("/api/tasks", {
         title: form.title,
@@ -84,12 +90,15 @@ export default function Tasks() {
   }
 
   async function updateStatus(id, status) {
+    console.log('updateStatus called:', { id, status });
     try {
       const updated = await api.put(`/api/tasks/${id}`, { status });
+      console.log('Status updated successfully:', updated);
       setTasks((ts) =>
         ts.map((t) => (t.id === id ? updated : t))
       );
     } catch (e) {
+      console.error('Error updating status:', e);
       setError(e.message);
     }
   }
@@ -157,7 +166,10 @@ export default function Tasks() {
               className="input"
               placeholder="Naslov taska"
               value={form.title}
-              onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))}
+              onChange={(e) => {
+                console.log('Input changed:', e.target.value);
+                setForm(f => ({ ...f, title: e.target.value }));
+              }}
             />
             <textarea
               className="textarea"
@@ -184,7 +196,10 @@ export default function Tasks() {
                 onChange={(e) => setForm(f => ({ ...f, dueDate: e.target.value }))}
               />
             </div>
-            <button className="btn btn-primary" onClick={add}>
+            <button className="btn btn-primary" onClick={() => {
+              console.log('Add button clicked!');
+              add();
+            }}>
               Dodaj Task
             </button>
           </div>
@@ -249,14 +264,20 @@ export default function Tasks() {
                   <div style={{ display: "flex", gap: "8px" }}>
                     <select
                       value={task.status}
-                      onChange={(e) => updateStatus(task.id, e.target.value)}
+                      onChange={(e) => {
+                        console.log('Status change:', task.id, e.target.value);
+                        updateStatus(task.id, e.target.value);
+                      }}
+                      className="input"
                       style={{
-                        padding: "4px 8px",
+                        padding: "6px 12px",
                         borderRadius: "6px",
                         border: "1px solid var(--color-gray-300)",
                         backgroundColor: "var(--color-white)",
                         color: statusColors[task.status],
-                        fontWeight: 600
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        minWidth: "100px"
                       }}
                     >
                       <option value="todo">To-Do</option>

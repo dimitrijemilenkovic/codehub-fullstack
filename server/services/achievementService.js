@@ -1,4 +1,14 @@
-import { pool } from '../config/database.js'
+import pkg from 'pg'
+const { Pool } = pkg
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || undefined,
+  host: process.env.PGHOST || 'localhost',
+  port: Number(process.env.PGPORT || 5432),
+  user: process.env.PGUSER || 'codehub',
+  password: process.env.PGPASSWORD || 'codehub_pass',
+  database: process.env.PGDATABASE || 'codehub_db',
+})
 
 export class AchievementService {
   static async getUserAchievements(userId) {
@@ -23,6 +33,7 @@ export class AchievementService {
   }
 
   static async checkAchievements(userId) {
+    
     // Get user stats
     const statsQuery = `
       SELECT 
@@ -32,7 +43,13 @@ export class AchievementService {
         (SELECT COUNT(*) FROM focus_sessions WHERE user_id = $1) as pomodoro_sessions
     `
     const statsResult = await pool.query(statsQuery, [userId])
-    const stats = statsResult.rows[0]
+    const stats = {
+      total_tasks: parseInt(statsResult.rows[0].total_tasks),
+      completed_tasks: parseInt(statsResult.rows[0].completed_tasks),
+      total_snippets: parseInt(statsResult.rows[0].total_snippets),
+      pomodoro_sessions: parseInt(statsResult.rows[0].pomodoro_sessions)
+    }
+    
 
     // Get already unlocked achievements
     const unlockedQuery = `
@@ -40,6 +57,7 @@ export class AchievementService {
     `
     const unlockedResult = await pool.query(unlockedQuery, [userId])
     const unlocked = unlockedResult.rows.map(row => row.achievement_id)
+    
 
     // Check for new achievements
     const newAchievements = []
@@ -68,6 +86,7 @@ export class AchievementService {
       await this.unlockAchievement(userId, 'productivity_god')
       newAchievements.push('productivity_god')
     }
+
 
     return {
       stats,

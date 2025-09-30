@@ -116,7 +116,8 @@ async function setupDatabase() {
     let demoUserId
     if (demoUserResult.rows.length === 0) {
       const bcrypt = await import('bcryptjs')
-      const hashedPassword = await bcrypt.hash('demo123', 10)
+      const { hash } = bcrypt.default || bcrypt
+      const hashedPassword = await hash('demo123', 10)
       
       const newUserResult = await pool.query(`
         INSERT INTO users (username, email, password_hash)

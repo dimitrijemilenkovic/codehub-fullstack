@@ -4,13 +4,14 @@ import { api } from '../services/api.js'
 import { usePageTitle } from '../hooks/usePageTitle.js'
 
 export default function Snippets(){
+	console.log('SNIPPETS COMPONENT RENDERING!');
 	usePageTitle('Snippeti')
 	const [snippets, setSnippets] = useState([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState('')
-	const [form, setForm] = useState({ title: '', language: 'javascript', code: '', tags: '' })
+	const [form, setForm] = useState({ title: '', language: 'javascript', code: '' })
 	const [editingId, setEditingId] = useState(null)
-	const [editForm, setEditForm] = useState({ title: '', language: 'javascript', code: '', tags: '' })
+	const [editForm, setEditForm] = useState({ title: '', language: 'javascript', code: '' })
 
 	useEffect(() => {
 		let mounted = true
@@ -29,18 +30,18 @@ export default function Snippets(){
 	}, [])
 
 	async function handleAdd(e){
+		console.log('SNIPPET ADD FUNCTION CALLED!', { form });
 		e.preventDefault()
 		setError('')
 		try {
 			const payload = {
 				title: form.title,
 				language: form.language,
-				code: form.code,
-				tags: form.tags.split(',').map(s => s.trim()).filter(Boolean),
+				code: form.code
 			}
 			const created = await api.post('/api/snippets', payload)
 			setSnippets(s => [created, ...s])
-			setForm({ title: '', language: 'javascript', code: '', tags: '' })
+			setForm({ title: '', language: 'javascript', code: '' })
 		} catch(e){
 			setError(e.message)
 		}
@@ -48,7 +49,7 @@ export default function Snippets(){
 
 	function startEdit(s){
 		setEditingId(s.id)
-		setEditForm({ title: s.title, language: s.language, code: s.code, tags: (s.tags||[]).join(', ') })
+		setEditForm({ title: s.title, language: s.language, code: s.code })
 	}
 
 	async function saveEdit(e){
@@ -57,8 +58,7 @@ export default function Snippets(){
 			const payload = {
 				title: editForm.title,
 				language: editForm.language,
-				code: editForm.code,
-				tags: editForm.tags.split(',').map(s => s.trim()).filter(Boolean),
+				code: editForm.code
 			}
 			const updated = await api.put(`/api/snippets/${editingId}`, payload)
 			setSnippets(list => list.map(s => s.id===editingId ? updated : s))
@@ -83,30 +83,25 @@ export default function Snippets(){
 						className="input"
 						placeholder="Naslov snippeta" 
 						value={form.title} 
-						onChange={e=>setForm(f=>({...f, title:e.target.value}))} 
+						onChange={e=>{
+							console.log('Snippet input changed:', e.target.value);
+							setForm(f=>({...f, title:e.target.value}));
+						}} 
 					/>
-					<div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:12}}>
-						<select 
-							className="input"
-							value={form.language} 
-							onChange={e=>setForm(f=>({...f, language:e.target.value}))}
-						>
-							<option>javascript</option>
-							<option>typescript</option>
-							<option>python</option>
-							<option>java</option>
-							<option>csharp</option>
-							<option>html</option>
-							<option>css</option>
-							<option>sql</option>
-						</select>
-						<input 
-							className="input"
-							placeholder="Tagovi (razdvoji zarezom)" 
-							value={form.tags} 
-							onChange={e=>setForm(f=>({...f, tags:e.target.value}))} 
-						/>
-					</div>
+					<select 
+						className="input"
+						value={form.language} 
+						onChange={e=>setForm(f=>({...f, language:e.target.value}))}
+					>
+						<option>javascript</option>
+						<option>typescript</option>
+						<option>python</option>
+						<option>java</option>
+						<option>csharp</option>
+						<option>html</option>
+						<option>css</option>
+						<option>sql</option>
+					</select>
 					<textarea 
 						className="textarea"
 						placeholder="Kod snippeta..." 
@@ -140,73 +135,38 @@ export default function Snippets(){
 												value={editForm.title} 
 												onChange={e=>setEditForm(f=>({...f, title:e.target.value}))} 
 											/>
-											<div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:12}}>
-												<select 
-													className="input"
-													value={editForm.language} 
-													onChange={e=>setEditForm(f=>({...f, language:e.target.value}))}
-												>
-													<option>javascript</option>
-													<option>typescript</option>
-													<option>python</option>
-													<option>java</option>
-													<option>csharp</option>
-													<option>html</option>
-													<option>css</option>
-													<option>sql</option>
-												</select>
-												<input 
-													className="input"
-													value={editForm.tags} 
-													onChange={e=>setEditForm(f=>({...f, tags:e.target.value}))} 
-												/>
-											</div>
+											<select 
+												className="input"
+												value={editForm.language} 
+												onChange={e=>setEditForm(f=>({...f, language:e.target.value}))}
+											>
+												<option>javascript</option>
+												<option>typescript</option>
+												<option>python</option>
+												<option>java</option>
+												<option>csharp</option>
+												<option>html</option>
+												<option>css</option>
+												<option>sql</option>
+											</select>
 											<textarea 
 												className="textarea"
 												rows={8} 
 												value={editForm.code} 
 												onChange={e=>setEditForm(f=>({...f, code:e.target.value}))} 
 											/>
-											<div style={{display:'flex', gap:8}}>
-												<button className="btn btn-primary" type="submit">Sačuvaj izmene</button>
-												<button type="button" className="btn btn-outline" onClick={()=>setEditingId(null)}>
-													Otkaži
-												</button>
+											<div style={{display:'flex', gap:12}}>
+												<button type="submit" className="btn btn-primary">Sačuvaj</button>
+												<button type="button" className="btn btn-secondary" onClick={()=>setEditingId(null)}>Otkaži</button>
 											</div>
 										</form>
 									</div>
 								) : (
-									<>
-										<div className="snippet-header">
-											<div className="snippet-title">{s.title}</div>
-											<div className="snippet-actions">
-												<button className="btn btn-outline" onClick={()=>startEdit(s)}>
-													Izmeni
-												</button>
-												<button 
-													className="btn btn-outline" 
-													onClick={()=>remove(s.id)}
-													style={{borderColor:'var(--color-danger-300)', color:'var(--color-danger-600)'}}
-												>
-													Obriši
-												</button>
-											</div>
-										</div>
-										<div className="snippet-content">
-											<div className="snippet-meta">
-												<span>Jezik: <strong>{s.language}</strong></span>
-												<span>Kreiran: {new Date(s.created_at).toLocaleDateString('sr-RS')}</span>
-											</div>
-											<SnippetCard title={s.title} code={s.code} language={s.language} />
-											{s.tags && s.tags.length > 0 && (
-												<div className="snippet-tags">
-													{s.tags.map((tag, i) => (
-														<span key={i} className="snippet-tag">{tag}</span>
-													))}
-												</div>
-											)}
-										</div>
-									</>
+									<SnippetCard 
+										snippet={s} 
+										onEdit={()=>startEdit(s)} 
+										onDelete={()=>remove(s.id)} 
+									/>
 								)}
 							</div>
 						))

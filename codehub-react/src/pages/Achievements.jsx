@@ -167,7 +167,7 @@ export default function Achievements() {
           fontSize: '1.125rem',
           marginBottom: '24px'
         }}>
-          Achievements se automatski otključavaju kada ispuniš određene uslove. Hoveruj preko achievement-a da vidiš kako da ih osvojiš!
+          Achievements se automatski otključavaju kada ispuniš određene uslove. Kada ih ostvariš dobijaš Obaveštenje u Dashboard-u.
         </p>
         <div style={{ 
           display: 'grid', 

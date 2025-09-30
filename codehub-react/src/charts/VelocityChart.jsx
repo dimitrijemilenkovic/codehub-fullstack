@@ -20,13 +20,10 @@ export default function VelocityChart({ data, loading }){
     )
   }
 
-  // Format data for chart
+  // Format data for chart - fix API response mapping
   const formattedData = data?.map(item => ({
-    ...item,
-    date: new Date(item.date).toLocaleDateString('sr-RS', { 
-      month: 'short', 
-      day: 'numeric' 
-    })
+    date: item.day,
+    done: parseInt(item.done) || 0
   })) || []
 
   return (
@@ -38,7 +35,7 @@ export default function VelocityChart({ data, loading }){
           fontSize: '1.375rem',
           color: 'var(--color-gray-900)'
         }}>
-          Završeni taskovi
+          🎯 Završeni taskovi
         </h3>
         <p style={{ 
           margin: 0, 
@@ -67,7 +64,6 @@ export default function VelocityChart({ data, loading }){
             axisLine={false}
           />
           <YAxis 
-            allowDecimals={false} 
             stroke="var(--color-gray-600)"
             fontSize={12}
             tickLine={false}
@@ -84,17 +80,17 @@ export default function VelocityChart({ data, loading }){
           />
           <Line 
             type="monotone" 
-            dataKey="tasks_completed" 
-            stroke="var(--color-brand-600)" 
+            dataKey="done" 
+            stroke="var(--color-blue-600)" 
             strokeWidth={3} 
             dot={{ 
-              fill: 'var(--color-brand-600)', 
+              fill: 'var(--color-blue-600)', 
               strokeWidth: 2, 
               r: 4 
             }}
             activeDot={{ 
               r: 6, 
-              stroke: 'var(--color-brand-600)', 
+              stroke: 'var(--color-blue-600)', 
               strokeWidth: 2 
             }}
           />

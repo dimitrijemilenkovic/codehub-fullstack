@@ -1,151 +1,201 @@
-# CodeHub - Fullstack Productivity App
+# �� CodeHub - Full Stack Developer Productivity App
 
-A modern fullstack application for task management, code snippets, and productivity tracking with Pomodoro timer.
+![CodeHub Dashboard](https://img.shields.io/badge/Status-Live-brightgreen)
+![React](https://img.shields.io/badge/React-18.2.0-blue)
+![Node.js](https://img.shields.io/badge/Node.js-20.11.0-green)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14.0-blue)
 
-## 🚀 Features
+## 📋 Pregled
 
-- **Task Management** - Create, update, and track tasks with different statuses (todo/doing/done)
-- **Code Snippets** - Save and organize code snippets with syntax highlighting
-- **Pomodoro Timer** - Focus sessions with automatic breaks
-- **Achievements** - Gamified productivity system
-- **Dashboard** - Statistics and quick actions
-- **Dark/Light Theme** - Responsive design with theme switching
+CodeHub je moderna full-stack aplikacija dizajnirana za povećanje produktivnosti developera. Kombinuje task management, code snippet storage, Pomodoro timer i achievement sistem u jednu sveobuhvatnu platformu.
 
-## 🛠️ Tech Stack
+## ✨ Funkcionalnosti
+
+### 🎯 Task Management
+- **Kreiranje i upravljanje taskovima** sa prioritetima (nizak, srednji, visok)
+- **Status tracking** (To-Do, Doing, Done)
+- **Due date management** sa kalendar prikazom
+- **Filtering i search** po statusu i prioritetu
+- **Real-time updates** sa drag & drop funkcionalnostima
+
+### 💻 Code Snippets
+- **Syntax highlighting** za 8+ programskih jezika
+- **Organizacija po kategorijama** (JavaScript, TypeScript, Python, Java, C#, HTML, CSS, SQL)
+- **Quick search i filtering**
+- **Copy-to-clipboard** funkcionalnost
+- **Version control** za snippet-ove
+
+### 🍅 Pomodoro Timer
+- **Customizable timer** (25min work, 5min break)
+- **Session tracking** sa statistikama
+- **Focus time analytics** sa grafikom
+- **Break reminders** sa notifikacijama
+- **Productivity insights**
+
+### 🏆 Achievement System
+- **12 unique achievements** za motivaciju
+- **Progress tracking** sa procentima
+- **Unlock notifications** u real-time
+- **Gamification elements** za engagement
+
+### 📊 Analytics Dashboard
+- **Focus time charts** (7-day view)
+- **Task completion velocity**
+- **Productivity metrics**
+- **Personal statistics**
+- **Interactive calendar**
+
+## 🛠️ Tehnologije
 
 ### Frontend
-- React 19 + Vite
-- Tailwind CSS 4.1
-- React Router
-- Recharts for data visualization
-- React Syntax Highlighter
+- **React 18.2.0** - Modern UI library
+- **Vite** - Fast build tool
+- **React Router** - Client-side routing
+- **Recharts** - Data visualization
+- **React Syntax Highlighter** - Code display
+- **CSS3** - Custom styling system
 
 ### Backend
-- Node.js + Express
-- PostgreSQL database
-- JWT authentication
-- Bcrypt for password hashing
+- **Node.js 20.11.0** - Runtime environment
+- **Express.js** - Web framework
+- **PostgreSQL 14** - Relational database
+- **JWT** - Authentication
+- **bcryptjs** - Password hashing
+- **CORS** - Cross-origin requests
 
-## 📦 Installation
+## 🚀 Brzo Pokretanje
 
-### Prerequisites
-- Node.js (v20+)
-- PostgreSQL database
-
-### Setup
-
-1. **Clone the repository**
+### 1. Instalacija
 ```bash
-git clone https://github.com/dimitrijemilenkovic/codehub-fullstack.git
-cd codehub-fullstack
+npm install
 ```
 
-2. **Install dependencies**
+### 2. Pokretanje
 ```bash
-npm run install:all
+npm run dev
 ```
 
-3. **Setup database**
+Aplikacija će biti dostupna na:
+- **Frontend**: http://localhost:5173
+- **Backend**: http://localhost:3001
+
+### 3. Database Setup
 ```bash
 cd server
-npm run db:setup
+node scripts/setup-db.js
 ```
 
-4. **Configure environment**
-Create `.env` file in `server/` directory:
-```env
-PGHOST=localhost
-PGPORT=5432
-PGUSER=codehub
-PGPASSWORD=codehub_pass
-PGDATABASE=codehub_db
-JWT_SECRET=your-super-secret-jwt-key
-PORT=3001
-NODE_ENV=development
+## 📱 Korišćenje
+
+1. **Registracija** - Kreirajte novi nalog
+2. **Login** - Prijavite se
+3. **Dashboard** - Pregledajte produktivnost
+4. **Tasks** - Upravljajte taskovima
+5. **Snippets** - Sačuvajte kod
+6. **Pomodoro** - Fokusirajte se
+
+## 🎨 Screenshots
+
+### Dashboard
+- Interaktivni grafikon fokus vremena
+- Statistike taskova
+- Achievement sistem
+- Kalendar prikaz
+
+### Task Management
+- Drag & drop interface
+- Priority system
+- Status tracking
+- Due date management
+
+### Code Snippets
+- Syntax highlighting
+- Language categorization
+- Search functionality
+- Edit/Delete options
+
+## 🔧 Development
+
+### Struktura Projekta
 ```
-
-5. **Start the application**
-```bash
-# Start both frontend and backend
-npm run dev
-
-# Or start separately
-npm run dev:client  # Frontend on http://localhost:5173
-npm run dev:server  # Backend on http://localhost:3001
-```
-
-## 🎯 Usage
-
-1. **Register/Login** - Create an account or use demo credentials
-2. **Dashboard** - View your productivity stats and quick actions
-3. **Tasks** - Manage your todo list with different priorities
-4. **Snippets** - Save and organize code snippets
-5. **Pomodoro** - Use the timer for focused work sessions
-6. **Achievements** - Unlock achievements by completing tasks
-
-## 📁 Project Structure
-
-```
-├── codehub-react/          # React frontend
+codehub-fullstack/
+├── server/                 # Backend API
+│   ├── controllers/        # Route handlers
+│   ├── services/          # Business logic
+│   ├── routes/            # API routes
+│   ├── middleware/        # Auth & validation
+│   └── scripts/           # Database setup
+├── codehub-react/         # Frontend React app
 │   ├── src/
-│   │   ├── components/     # UI components
-│   │   ├── pages/          # Application pages
-│   │   ├── hooks/          # Custom React hooks
-│   │   ├── services/       # API and auth services
-│   │   ├── charts/         # Data visualization
-│   │   └── styles/         # CSS styles
-└── server/                 # Node.js backend
-    ├── controllers/        # API controllers
-    ├── routes/            # API routes
-    ├── middleware/        # Auth middleware
-    ├── services/          # Business logic
-    └── scripts/           # Database setup
+│   │   ├── components/    # Reusable components
+│   │   ├── pages/         # Page components
+│   │   ├── hooks/         # Custom hooks
+│   │   ├── services/      # API calls
+│   │   └── styles/        # CSS files
+│   └── public/            # Static assets
+└── package.json           # Root dependencies
 ```
 
-## 🔧 API Endpoints
+### Scripts
+```bash
+npm run dev          # Pokretanje oba servera
+npm run dev:server   # Samo backend
+npm run dev:client   # Samo frontend
+npm run build        # Production build
+```
 
-### Authentication
-- `POST /api/register` - User registration
-- `POST /api/login` - User login
+## 📊 Database Schema
+
+### Users
+- id, username, email, password_hash, created_at
 
 ### Tasks
-- `GET /api/tasks` - Get user tasks
-- `POST /api/tasks` - Create new task
-- `PUT /api/tasks/:id` - Update task
-- `DELETE /api/tasks/:id` - Delete task
+- id, user_id, title, description, priority, status, due_date, created_at, updated_at
 
 ### Snippets
-- `GET /api/snippets` - Get user snippets
-- `POST /api/snippets` - Create new snippet
-- `PUT /api/snippets/:id` - Update snippet
-- `DELETE /api/snippets/:id` - Delete snippet
+- id, user_id, title, language, code, created_at, updated_at
 
-### Metrics
-- `GET /api/metrics/velocity` - Task completion velocity
-- `GET /api/metrics/focus` - Focus session data
+### Focus Sessions
+- id, user_id, duration_minutes, created_at
 
-## 🎨 Features
+## 🚀 Deployment
 
-- **Responsive Design** - Works on desktop and mobile
-- **Dark/Light Theme** - Toggle between themes
-- **Real-time Updates** - Live data synchronization
-- **Achievement System** - Gamified productivity
-- **Pomodoro Timer** - Focus session management
-- **Code Syntax Highlighting** - Beautiful code display
+### Production Build
+```bash
+# Frontend
+cd codehub-react
+npm run build
 
-## 📝 License
+# Backend
+cd ../server
+npm start
+```
 
-This project is licensed under the MIT License.
-
-## 👨‍💻 Author
-
-**Dimitrije Milenkovic**
-- GitHub: [@dimitrijemilenkovic](https://github.com/dimitrijemilenkovic)
+### Environment Variables
+```env
+NODE_ENV=production
+DATABASE_URL=postgresql://user:password@host:port/database
+JWT_SECRET=your-production-secret
+PORT=3001
+```
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+1. Fork repository
+2. Create feature branch
+3. Commit changes
+4. Push to branch
+5. Open Pull Request
+
+## 📝 License
+
+MIT License - see LICENSE file for details
+
+## 👨‍💻 Autor
+
+**Dimitrije Milenković**
+- GitHub: [@dimitrijemilenkovic](https://github.com/dimitrijemilenkovic)
+
+---
+
+⭐ **Ako vam se sviđa projekat, ostavite zvezdu!** ⭐

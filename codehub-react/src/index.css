@@ -921,3 +921,69 @@ p, span, div {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0,0,0,0.1);
 }
+
+/* Debug - Force interactivity */
+* {
+  pointer-events: auto !important;
+}
+
+body, html {
+  pointer-events: auto !important;
+  user-select: auto !important;
+}
+
+.input, .textarea, .btn, select {
+  pointer-events: auto !important;
+  user-select: auto !important;
+  -webkit-user-select: auto !important;
+  -moz-user-select: auto !important;
+  -ms-user-select: auto !important;
+  position: relative !important;
+  z-index: 999 !important;
+}
+
+/* Enhanced select styling */
+select.input {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 8px center !important;
+  background-size: 16px !important;
+  padding-right: 32px !important;
+  cursor: pointer !important;
+}
+
+/* Ensure cards don't block interaction */
+.card {
+  pointer-events: auto !important;
+}
+
+/* Enhanced snippet card styling */
+.snippet-card {
+  background: var(--color-white) !important;
+  border: 1px solid var(--color-gray-200) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+  transition: all 0.2s ease !important;
+  overflow: hidden !important;
+}
+
+.snippet-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Add missing btn-secondary styling */
+.btn-secondary {
+  background: var(--color-gray-200) !important;
+  color: var(--color-gray-700) !important;
+  border-color: var(--color-gray-300) !important;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-gray-300) !important;
+  border-color: var(--color-gray-400) !important;
+  transform: translateY(-1px) !important;
+}

@@ -64,46 +64,32 @@ export default function Pomodoro() {
     localStorage.setItem('pomodoroState', JSON.stringify(state))
   }, [timeLeft, isRunning, isBreak, sessionCount, totalMinutes, selectedDuration, breakDuration, isActive])
 
-  const handleSessionComplete = useCallback(async () => {
-    console.log('Session completed!', { isBreak, selectedDuration, breakDuration })
-    setIsRunning(false)
+  const handleSessionComplete = useCallback(async () => {    setIsRunning(false)
     clearInterval(intervalRef.current)
     
     if (!isBreak) {
       // Work session completed - save to backend
-      const minutes = selectedDuration
-      console.log('Saving work session:', minutes, 'minutes')
-      
+      const minutes = selectedDuration      
       try {
         const response = await api.post('/api/focus-sessions', {
           minutes: minutes
-        })
-        console.log('Focus session saved:', response)
-      } catch (e) {
-        console.error('Failed to save focus session:', e)
-      }
+        })      } catch (e) {      }
       
       // Update local stats
       setTotalMinutes(prev => prev + minutes)
       setSessionCount(prev => prev + 1)
       accumulatedTimeRef.current += minutes
       
-      // Start break automatically
-      console.log('Starting break for', breakDuration, 'minutes')
-      setIsBreak(true)
+      // Start break automatically      setIsBreak(true)
       setTimeLeft(breakDuration * 60)
       
       // Auto-start break timer
-      setTimeout(() => {
-        console.log('Auto-starting break timer')
-        setIsRunning(true)
+      setTimeout(() => {        setIsRunning(true)
         startTimeRef.current = new Date()
       }, 1000) // Small delay to ensure state is updated
       
     } else {
-      // Break completed, start new work session
-      console.log('Break completed, starting new work session')
-      setIsBreak(false)
+      // Break completed, start new work session      setIsBreak(false)
       setTimeLeft(selectedDuration * 60)
       // Don't auto-start work session, let user decide
     }
@@ -127,25 +113,19 @@ export default function Pomodoro() {
     return () => clearInterval(intervalRef.current)
   }, [isRunning, timeLeft, handleSessionComplete])
 
-  function startTimer() {
-    console.log('Starting timer')
-    setIsRunning(true)
+  function startTimer() {    setIsRunning(true)
     setIsActive(true)
     startTimeRef.current = new Date()
   }
 
-  function pauseTimer() {
-    console.log('Pausing timer')
-    setIsRunning(false)
+  function pauseTimer() {    setIsRunning(false)
     if (startTimeRef.current) {
       const elapsed = Math.floor((Date.now() - startTimeRef.current.getTime()) / 1000)
       accumulatedTimeRef.current += elapsed
     }
   }
 
-  function resetTimer() {
-    console.log('Resetting timer')
-    setIsRunning(false)
+  function resetTimer() {    setIsRunning(false)
     setIsActive(false)
     setIsBreak(false)
     setTimeLeft(selectedDuration * 60)
@@ -322,31 +302,6 @@ export default function Pomodoro() {
             <div style={{ color: 'var(--color-gray-600)', fontSize: '0.9rem' }}>
               Status
             </div>
-          </div>
-        </div>
-
-        {/* Debug Info */}
-        <div style={{ 
-          marginTop: '32px', 
-          padding: '20px', 
-          backgroundColor: 'var(--color-blue-50)', 
-          borderRadius: '12px',
-          border: '1px solid var(--color-blue-200)',
-          fontSize: '0.9rem',
-          textAlign: 'left'
-        }}>
-          <h3 style={{ marginBottom: '12px', color: 'var(--color-blue-800)' }}>
-            🔧 Debug Info
-          </h3>
-          <div style={{ color: 'var(--color-blue-700)', lineHeight: '1.6' }}>
-            <div>Is Running: {isRunning ? 'Yes' : 'No'}</div>
-            <div>Is Break: {isBreak ? 'Yes' : 'No'}</div>
-            <div>Time Left: {timeLeft}s</div>
-            <div>Selected Duration: {selectedDuration}min</div>
-            <div>Break Duration: {breakDuration}min</div>
-            <div>Total Minutes: {totalMinutes}</div>
-            <div>Sessions: {sessionCount}</div>
-            <div>Progress: {progress.toFixed(1)}%</div>
           </div>
         </div>
 
