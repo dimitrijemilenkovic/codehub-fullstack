@@ -3,47 +3,28 @@ import { pool } from '../config/database.js'
 export class MetricService {
   static async velocity(userId, days = 7) {
     const query = `
-      SELECT 
-        DATE(created_at) as date,
-        COUNT(*) as tasks_completed
-      FROM tasks 
-      WHERE user_id = $1 
-        AND status = 'done' 
-        AND created_at >= NOW() - INTERVAL '${days} days'
-      GROUP BY DATE(created_at)
-      ORDER BY DATE(created_at)
+      SELECT to_char(ds.d::date, 'Dy') AS day, COALESCE(t.cnt,0) AS done
+      FROM generate_series(CURRENT_DATE - ($1::int - 1), CURRENT_DATE, interval '1 day') AS ds(d)
+      LEFT JOIN (
+        SELECT date_trunc('day', updated_at)::date AS task_date, COUNT(*) AS cnt
+        FROM tasks WHERE status='done' AND user_id=$2
+        GROUP BY 1
+      ) t ON t.task_date = ds.d::date
+      ORDER BY ds.d
     `
-    const result = await pool.query(query, [userId])
+    const result = await pool.query(query, [days, userId])
     return result.rows
   }
 
-    static async focus(userId) {
+  static async focus(userId) {
     const query = `
-      SELECT 
-        d.d::date AS date,
-        COALESCE(SUM(fs.duration_minutes), 0) AS total_minutes
-      FROM generate_series(NOW() - INTERVAL '6 days', NOW(), '1 day') AS d(d)
-      LEFT JOIN focus_sessions fs ON fs.user_id = $1 AND fs.created_at::date = d.d::date
-      GROUP BY d.d
-      ORDER BY d.d
+      SELECT to_char(ds.d::date, 'Dy') AS day, COALESCE(SUM(f.duration_minutes),0) AS minutes
+      FROM generate_series(CURRENT_DATE - 6, CURRENT_DATE, interval '1 day') AS ds(d)
+      LEFT JOIN focus_sessions f ON f.created_at::date = ds.d::date AND f.user_id=$1
+      GROUP BY ds.d
+      ORDER BY ds.d
     `
-    
-    try {
-      const result = await pool.query(query, [userId])
-      return result.rows
-    } catch (error) {
-      console.error('Focus metrics error:', error)
-      // Return empty data for last 7 days on error
-      const emptyData = []
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date()
-        date.setDate(date.getDate() - i)
-        emptyData.push({
-          date: date.toISOString().split('T')[0],
-          total_minutes: 0
-        })
-      }
-      return emptyData
-    }
+    const result = await pool.query(query, [userId])
+    return result.rows
   }
 }

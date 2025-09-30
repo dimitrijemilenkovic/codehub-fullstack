@@ -1,188 +1,47 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
-import pkg from 'pg'
-import jwt from 'jsonwebtoken'
-import bcrypt from 'bcryptjs'
-const { Pool } = pkg
+
+// Routes
+import authRoutes from './routes/authRoutes.js'
+import taskRoutes from './routes/taskRoutes.js'
+import snippetRoutes from './routes/snippetRoutes.js'
+import metricRoutes from './routes/metricRoutes.js'
+import focusRoutes from './routes/focusRoutes.js'
+import achievementRoutes from './routes/achievementRoutes.js'
 
 const app = express()
+
+// Middleware
 app.use(cors())
 app.use(express.json())
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || undefined,
-  host: process.env.PGHOST || 'localhost',
-  port: Number(process.env.PGPORT || 5432),
-  user: process.env.PGUSER || 'codehub',
-  password: process.env.PGPASSWORD || 'codehub_pass',
-  database: process.env.PGDATABASE || 'codehub_db',
-})
-
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret'
-
-function auth(req, res, next){
-  const h = req.headers.authorization || ''
-  const token = h.startsWith('Bearer ') ? h.slice(7) : null
-  if(!token) return res.status(401).json({ error: 'Unauthorized' })
-  try{
-    const payload = jwt.verify(token, JWT_SECRET)
-    req.user = { id: payload.sub, email: payload.email, username: payload.username }
-    next()
-  }catch(e){
-    return res.status(401).json({ error: 'Unauthorized' })
-  }
-}
-
+// Health check
 app.get('/health', async (req, res) => {
-  try {
-    await pool.query('SELECT 1')
-    res.json({ ok: true })
-  } catch (e) {
-    res.status(500).json({ ok: false, error: e.message })
-  }
+  res.json({ ok: true, timestamp: new Date().toISOString() })
 })
 
-// Auth
-app.post('/api/register', async (req, res) => {
-  const { username, email, password } = req.body || {}
-  if (!username || !email || !password) return res.status(400).json({ error: 'Popuni sva polja' })
-  const password_hash = await bcrypt.hash(password, 10)
-  const result = await pool.query(
-    `INSERT INTO users(username, email, password_hash)
-     VALUES ($1, $2, $3)
-     ON CONFLICT (email) DO UPDATE SET username=EXCLUDED.username
-     RETURNING id, username, email`,
-    [username, email, password_hash]
-  )
-  res.json({ ok: true, user: result.rows[0] })
+// API Routes
+app.use('/api', authRoutes)
+app.use('/api/tasks', taskRoutes)
+app.use('/api/snippets', snippetRoutes)
+app.use('/api/metrics', metricRoutes)
+app.use('/api/focus-sessions', focusRoutes)
+app.use('/api/achievements', achievementRoutes)
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not found' })
 })
 
-app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body || {}
-  if (!email || !password) return res.status(400).json({ error: 'Prazna polja' })
-  const result = await pool.query('SELECT id, username, email, password_hash FROM users WHERE email=$1', [email])
-  if (result.rowCount === 0) return res.status(401).json({ error: 'Neispravni kredencijali' })
-  const user = result.rows[0]
-  const ok = await bcrypt.compare(password, user.password_hash)
-  if (!ok) return res.status(401).json({ error: 'Neispravni kredencijali' })
-  const token = jwt.sign({ sub: user.id, email: user.email, username: user.username }, JWT_SECRET, { expiresIn: '7d' })
-  res.json({ token, user: { id: user.id, username: user.username, email: user.email } })
-})
-
-// Snippets (protected)
-app.get('/api/snippets', auth, async (req, res) => {
-  const { q } = req.query
-  let query = 'SELECT * FROM snippets WHERE user_id=$1 ORDER BY created_at DESC'
-  let params = [req.user.id]
-  if (q) {
-    query = `SELECT * FROM snippets WHERE user_id=$1 AND (LOWER(title) LIKE $2 OR LOWER(code) LIKE $2) ORDER BY created_at DESC`
-    params = [req.user.id, `%${String(q).toLowerCase()}%`]
-  }
-  const result = await pool.query(query, params)
-  res.json(result.rows)
-})
-
-app.post('/api/snippets', auth, async (req, res) => {
-  const { title, code, language, tags } = req.body || {}
-  const result = await pool.query(
-    `INSERT INTO snippets(user_id, title, code, language, tags)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING *`,
-    [req.user.id, title || 'Snippet', code || '', language || 'javascript', tags || []]
-  )
-  res.status(201).json(result.rows[0])
-})
-
-app.put('/api/snippets/:id', auth, async (req, res) => {
-  const { id } = req.params
-  const { title, code, language, tags } = req.body || {}
-  const result = await pool.query(
-    `UPDATE snippets
-     SET title=COALESCE($3,title), code=COALESCE($4,code), language=COALESCE($5,language), tags=COALESCE($6,tags), updated_at=NOW()
-     WHERE id=$1 AND user_id=$2
-     RETURNING *`,
-    [id, req.user.id, title, code, language, tags]
-  )
-  if (result.rowCount === 0) return res.status(404).json({ error: 'Not found' })
-  res.json(result.rows[0])
-})
-
-app.delete('/api/snippets/:id', auth, async (req, res) => {
-  const { id } = req.params
-  const result = await pool.query('DELETE FROM snippets WHERE id=$1 AND user_id=$2', [id, req.user.id])
-  if (result.rowCount === 0) return res.status(404).json({ error: 'Not found' })
-  res.status(204).end()
-})
-
-// Tasks (protected)
-app.get('/api/tasks', auth, async (req, res) => {
-  const result = await pool.query('SELECT * FROM tasks WHERE user_id=$1 ORDER BY created_at DESC', [req.user.id])
-  res.json(result.rows)
-})
-
-app.post('/api/tasks', auth, async (req, res) => {
-  const { title, description, status, priority, dueDate, estimate, spent } = req.body || {}
-  const result = await pool.query(
-    `INSERT INTO tasks(user_id, title, description, status, priority, due_date, estimate, spent)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-    [req.user.id, title || 'Bez naslova', description || '', status || 'todo', priority || 'medium', dueDate || null, Number(estimate || 0), Number(spent || 0)]
-  )
-  res.status(201).json(result.rows[0])
-})
-
-app.put('/api/tasks/:id', auth, async (req, res) => {
-  const { id } = req.params
-  const { title, description, status, priority, dueDate, estimate, spent } = req.body || {}
-  const result = await pool.query(
-    `UPDATE tasks SET 
-      title=COALESCE($3,title), description=COALESCE($4,description), status=COALESCE($5,status),
-      priority=COALESCE($6,priority), due_date=COALESCE($7,due_date), estimate=COALESCE($8,estimate), spent=COALESCE($9,spent),
-      updated_at=NOW()
-     WHERE id=$1 AND user_id=$2 RETURNING *`,
-    [id, req.user.id, title, description, status, priority, dueDate, estimate, spent]
-  )
-  if (result.rowCount === 0) return res.status(404).json({ error: 'Not found' })
-  res.json(result.rows[0])
-})
-
-app.delete('/api/tasks/:id', auth, async (req, res) => {
-  const { id } = req.params
-  const result = await pool.query('DELETE FROM tasks WHERE id=$1 AND user_id=$2', [id, req.user.id])
-  if (result.rowCount === 0) return res.status(404).json({ error: 'Not found' })
-  res.status(204).end()
-})
-
-// Metrics (protected per-user)
-app.get('/api/metrics/velocity', auth, async (req, res) => {
-  const { days = 7 } = req.query
-  const result = await pool.query(
-    `SELECT to_char(ds.d::date, 'Dy') AS day, COALESCE(t.cnt,0) AS done
-     FROM generate_series(CURRENT_DATE - ($1::int - 1), CURRENT_DATE, interval '1 day') AS ds(d)
-     LEFT JOIN (
-       SELECT date_trunc('day', updated_at)::date AS task_date, COUNT(*) AS cnt
-       FROM tasks WHERE status='done' AND user_id=$2
-       GROUP BY 1
-     ) t ON t.task_date = ds.d::date
-     ORDER BY ds.d`,
-    [days, req.user.id]
-  )
-  res.json(result.rows)
-})
-
-app.get('/api/metrics/focus', auth, async (req, res) => {
-  const result = await pool.query(
-    `SELECT to_char(ds.d::date, 'Dy') AS day, COALESCE(SUM(f.duration_minutes),0) AS minutes
-     FROM generate_series(CURRENT_DATE - 6, CURRENT_DATE, interval '1 day') AS ds(d)
-     LEFT JOIN focus_sessions f ON f.created_at::date = ds.d::date AND f.user_id=$1
-     GROUP BY ds.d
-     ORDER BY ds.d`,
-     [req.user.id]
-  )
-  res.json(result.rows)
+// Error handler
+app.use((err, req, res, next) => {
+  console.error('Error:', err)
+  res.status(500).json({ error: 'Internal server error' })
 })
 
 const port = process.env.PORT || 3001
 app.listen(port, () => {
-  console.log(`API listening on http://localhost:${port}`)
-}) 
+  console.log(`🚀 API listening on http://localhost:${port}`)
+  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`)
+})
